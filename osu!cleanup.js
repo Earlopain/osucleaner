@@ -81,6 +81,13 @@ try {
         process.exit(1);
     }
 }
+let keepHitsounds = false;
+if (readlineSync.keyInYN("\nDo you want to keep hitsounds?\n")) {
+    process.stdout.write("\You chose to keep hitsounds\n");
+    keepHitsounds = true;
+    logger.write("\nUser chose to keep hitsounds");
+    
+}
 //only notice if it is not a test run
 if (!dryRun && !readlineSync.keyInYN("\n\nAre you sure you want to do this? There may be errors. Consider making a backup\n")) {
     process.exit(1);
@@ -133,6 +140,8 @@ try {
         //Files as they appear in the .osu file
         let originalSoundFiles = [];
         let originalBackgrounds = [];
+
+
 
 
         //files as they are one the disk
@@ -228,6 +237,10 @@ try {
             filesToDelete = filterArray(filesToDelete, uniqueBackgrounds);
             filesToDelete = filterArray(filesToDelete, uniqueSoundFiles);
             filesToDelete = filterArray(filesToDelete, dotOsuFiles);
+            if (keepHitsounds) {
+                const hitsounds = getHitsounds(filesToDelete, folder);
+                filesToDelete = filterArray(filesToDelete, hitsounds);
+            }
             //delete files, if mode !testrun
             for (let i = 0; i < filesToDelete.length; i++) {
                 const stats = fs.statSync(filesToDelete[i]);
@@ -283,6 +296,23 @@ function nextStep() {
         process.stdin.on("data", process.exit.bind(process, 0));
     });
     logger.end();
+}
+
+function getHitsounds(files, folder) {
+    let hitsounds = [];
+    
+    for (let i = 0; i < files.length; i++) {
+        const filename = files[i].split(folder + "/")[1];
+        const prefix = filename.split("-")[0];
+        const ext = filename.split(".")[filename.split(".").length-1];
+
+        if((prefix === "normal" || prefix === "soft" || prefix === "drum") && ext === "wav"){
+            hitsounds.push(files[i]);
+            logger.write("\nKeeping hitsound " + filename);
+            
+        }
+    }
+    return hitsounds;
 }
 
 //fs.unlink doesn't care about capitalization, while fs.exists does, which means every file need to be checked
