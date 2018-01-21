@@ -1,3 +1,6 @@
+v1.2.1 21.1.18 0:41PM
+Fixed failsafe not triggering if osu!.exe is not found in parent folder
+
 v1.2 21.1.18 06:48PM
 Added option to also delete specified gamemode files
 
