@@ -57,7 +57,7 @@ while (!validFolder) {
         process.stdout.write("\nThis is either not a valid folder or you don't have permissions");
     }
 }
-let gamemodesToDelete;
+let gamemodesToDelete = [];
 const validGamemodesString = ["standart", "taiko", "ctb", "mania"];
 if (readlineSync.keyInYN("Do you want to also remove gamemode specific maps?")) {
     let validGamemodes = false;
