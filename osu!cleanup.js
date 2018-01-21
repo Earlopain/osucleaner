@@ -33,10 +33,10 @@ process.stdout.write("Programm written by earlopain. It should probalby work," +
     "Different mapsets:     15,457    Time:         91s (on an ssd)\n" +
     "Files before:          356,741   Size before:  137GB\n" +
     "Files after:           93,497    Size after:   68.27GB\n" +
-    "Difference:            263,244   Difference:   68.73GB\n\n\n");
+    "Difference:            263,244   Difference:   68.73GB\n\n");
 //Do not delete files if true
 let dryRun = true;
-if (readlineSync.keyInYN("The program defaults to not deleting files. It will only show you what would have happened. Press y if you want to delete the files\n")) {
+if (readlineSync.keyInYN("\nThe program defaults to not deleting files. It will only show you what would have happened. Press y if you want to delete the files")) {
     dryRun = false;
 }
 process.stdout.write("You selected " + (dryRun ? "only watch" : "to clean up your songs folder"));
@@ -54,9 +54,44 @@ while (!validFolder) {
         if (fs.statSync(rootFolder).isDirectory)
             validFolder = true;
     } catch (error) {
-        process.stdout.write("This is either not a valid folder or you don't have permissions\n");
+        process.stdout.write("\nThis is either not a valid folder or you don't have permissions");
     }
 }
+let gamemodesToDelete;
+const validGamemodesString = ["standart", "taiko", "ctb", "mania"];
+if (readlineSync.keyInYN("Do you want to also remove gamemode specific maps?")) {
+    let validGamemodes = false;
+    let first = true;
+    while (!validGamemodes) {
+        gamemodesToDelete = [];
+        let toDelete;
+        //if else , so you don't always see the question if you mistyped or something
+        if (first)
+            toDelete = readlineSync.question("Please write either standart, ctb, taiko or mania.\nIf you want to delete more than one, divide them like ctb;taiko;mania\n");
+        else
+            toDelete = readlineSync.question("");
+        if (toDelete.endsWith(";"))
+            toDelete = toDelete.slice(0, -1);
+
+        const gamemodes = toDelete.split(";");
+        for (let i = 0; i < gamemodes.length; i++) {
+            if (validGamemodesString.indexOf(gamemodes[i]) === -1) {
+                process.stdout.write(gamemodes[i] + " doesn't seem to be a valid gamemode, please try again");
+                validGamemodes = false;
+                first = false;
+                break;
+            }
+            gamemodesToDelete.push(gamemodes[i]);
+            validGamemodes = true;
+        }
+        if (gamemodesToDelete.length >= validGamemodesString.length) {
+            process.stdout.write("\nDeleting all gamemodes seems a bit overkill, I'm mean you can just delete the whole folder, what do you need this tool for?");
+            break;
+        }
+        log("Chose to delete gamemodes " + gamemodesToDelete);
+    }
+}
+
 //append / if not already there
 if (!rootFolder.endsWith("/"))
     rootFolder = rootFolder + "/";
@@ -72,7 +107,7 @@ try {
     osuExePath += "osu!.exe";
     fs.existsSync(osuExePath);
 } catch (error) {
-    process.stdout.write("osu!.exe was not found one directory lower in your folder. This is ok if your songs folder is not in your osu! folder");
+    process.stdout.write("\nosu!.exe was not found one directory lower in your folder. This is ok if your songs folder is not in your osu! folder");
     if (!dryRun)
         process.stdout.write("\nAre you ABSOLUTLY sure you got the right folder?\n" +
             "You may loose important files, they will not apear in your recycle bin");
@@ -82,33 +117,32 @@ try {
     }
 }
 let keepHitsounds = false;
-if (readlineSync.keyInYN("\nDo you want to keep hitsounds?\n")) {
-    process.stdout.write("\You chose to keep hitsounds\n");
+if (readlineSync.keyInYN("Do you want to keep hitsounds?")) {
+    process.stdout.write("You chose to keep hitsounds\n");
     keepHitsounds = true;
-    logger.write("\nUser chose to keep hitsounds");
-    
+    log("User chose to keep hitsounds");
 }
 //only notice if it is not a test run
-if (!dryRun && !readlineSync.keyInYN("\n\nAre you sure you want to do this? There may be errors. Consider making a backup\n")) {
+if (!dryRun && !readlineSync.keyInYN("\n\nAre you sure you want to do this? There may be errors. Consider making a backup")) {
     process.exit(1);
 }
 
-logger.write("root folder: " + rootFolder);
-logger.write("\r\nGetting mapsets...");
+log("root folder: " + rootFolder);
+log("Getting mapsets...");
 
 let foldersAndFiles = fs.readdirSync(rootFolder);
-logger.write("\r\nFinished!");
-logger.write("\r\nSorting out files...");
+log("Finished!");
+log("Sorting out files...");
 let songs = [];
 //remove everything which is not a folder
 foldersAndFiles.forEach(element => {
     if (fs.statSync(rootFolder + element).isDirectory())
         songs.push(rootFolder + element);
     else {
-        logger.write("\r\nNot a mapset: " + rootFolder + element);
+        log("Not a mapset: " + rootFolder + element);
     }
 });
-logger.write("\r\nFinished!");
+log("Finished!");
 let percentage = 0;
 let counter = 0;
 
@@ -116,14 +150,14 @@ let totalFiles = 0;
 let deletedFiles = 0;
 let spaceSaved = 0;
 
-const startTime =
-    Date.now() / 1000;
+const startTime = Date.now() / 1000;
+//used to see if you need to update the progress indicator, if different from the new one write it
 let previousWrite = "";
 
-logger.write("\r\n\r\nStart itterating over the mapsets...");
+log("Start itterating over the mapsets...", 2);
 try {
     songs.forEach(folder => {
-        logger.write("\r\n\r\nParsing " + folder);
+        log("Parsing " + folder, 1);
         counter++;
         //percentage with one decimal and seconds since start, if something changes, update progress
         const writing = "" + Number.parseFloat(counter / songs.length * 100).toFixed(1) + "% " + (Math.round(Date.now() / 1000 - startTime)) + "s";
@@ -141,151 +175,116 @@ try {
         let originalSoundFiles = [];
         let originalBackgrounds = [];
 
-
-
-
         //files as they are one the disk
         let uniqueSoundFiles = [];
         let uniqueBackgrounds = [];
+        let unwishedGamemodeFiles = [];
 
         for (let i = 0; i < dotOsuFiles.length; i++) {
-            const content = fs.readFileSync(dotOsuFiles[i], "utf8");
-            const lines = content.split("\r\n");
+            const lines = fs.readFileSync(dotOsuFiles[i], "utf8").split("\r\n");
 
-            let backgroundImage;
-            let soundFile;
-            //are you in the general area? Contains music file
-            let inGeneral = false;
-            //are you in the events area? Contains background file
-            let inEvents = false;
-            //did the file get found?
-            let generalFinished = false;
-            let eventsFinsished = false;
+            let gamemode;
+            //did the user selecte to delete gamemodes?
+            if (gamemodesToDelete.length > 0) {
+                gamemode = getPropertyFormDotOsu(dotOsuFiles[i], "General", "Mode");
+                if (gamemodesToDelete.indexOf(validGamemodesString[gamemode]) !== -1) {
+                    log(validGamemodesString[gamemode] + ": " + dotOsuFiles[i] + ", removing");
+                    unwishedGamemodeFiles.push(dotOsuFiles[i]);
+                    //stop the current loop, so you don't add files referenced in the to be deleted .osu
+                    continue;
+                }
+            }
+
             //matches something in quotes ending with picture ext, like 0,0,"background.jpg"
             //only picture, because mp4 etc also get startet like this 
-            const regex = /"([^"])*\.jpg"|"([^"])*\.jpeg"|"([^"])*\.png"/g;
-            //look through every line
-            for (let j = 0; j < lines.length; j++) {
-                //if both sound and background are found, no need to check further
-                if (eventsFinsished && generalFinished) {
-                    break;
+            const regex = /"[^"]*\.jpg"|"[^"]*\.jpeg"|"[^"]*\.png"/g;
+
+            const backgroundImageFilename = getPropertyFormDotOsu(dotOsuFiles[i], "Events", regex);
+            if (backgroundImageFilename !== undefined) {
+                const backgroundImagePath = folder + "/" + backgroundImageFilename.slice(1, -1);
+                //did it already get added to the list? Do not add it a second time
+                if (originalBackgrounds.indexOf(backgroundImagePath) === -1) {
+                    originalBackgrounds.push(backgroundImagePath);
+                    const backgroundImagePathCapitalized = checkCapitalization(backgroundImagePath, filesToDelete);
+                    uniqueBackgrounds.push(backgroundImagePathCapitalized);
+                    log("Found background " + backgroundImageFilename.slice(1, -1));
                 }
-
-                if (inEvents) {
-                    //did not find anything, stop looking
-                    if (lines[j].charAt[0] === "[") {
-                        inEvents = false;
-                        eventsFinsished = true;
-                    }
-
-                    let m;
-                    while ((m = regex.exec(lines[j])) !== null) {
-                        if (m.index === regex.lastIndex) {
-                            regex.lastIndex++;
-                        }
-                        //remove the quotes
-                        backgroundImage = folder + "/" + m[0].slice(1, -1);
-
-                        //did it already get added to the list? Do not add it a second time
-                        if (originalBackgrounds.indexOf(backgroundImage) === -1) {
-                            originalBackgrounds.push(backgroundImage);
-                            backgroundImage = checkCapitalization(backgroundImage, filesToDelete);
-                            uniqueBackgrounds.push(backgroundImage);
-                            logger.write("\r\nFound background " + m[0].slice(1, -1));
-                        }
-                        inEvents = false;
-                    }
-                }
-
-                if (inGeneral) {
-                    //not found, stop looking
-                    if (lines[j].charAt[0] === "[") {
-                        inGeneral = false;
-                        generalFinished = true;
-                    }
-                    //splits string into two parts, one everyting before the first :, the second everything after
-                    const splitted = lines[j].split(/:(.+)/);
-                    if (splitted[0] === "AudioFilename") {
-                        //trimm first space
-                        soundFile = folder + "/" + splitted[1].substr(1);
-                        //already in it, don't add again
-                        if (originalSoundFiles.indexOf(soundFile) === -1) {
-                            originalSoundFiles.push(soundFile);
-                            soundFile = checkCapitalization(soundFile, filesToDelete);
-                            uniqueSoundFiles.push(soundFile);
-                            logger.write("\r\nFound soundFile " + splitted[1].substr(1));
-                        }
-                        inGeneral = false;
-                    }
-                }
-
-                if (lines[j] === "[General]")
-                    inGeneral = true;
-                if (lines[j] === "[Events]")
-                    inEvents = true;
             }
-        }
-        //check for *.osu from one folder finished
-        if (uniqueBackgrounds.length === 0) {
-            logger.write("\r\nNo background found");
-        }
-
-        if (uniqueSoundFiles.length === 0) {
-            logger.write("\r\nNot deleting, no sound found");
-        } else {
-            //removes the content of the second from the first
-            filesToDelete = filterArray(filesToDelete, uniqueBackgrounds);
-            filesToDelete = filterArray(filesToDelete, uniqueSoundFiles);
-            filesToDelete = filterArray(filesToDelete, dotOsuFiles);
-            if (keepHitsounds) {
-                const hitsounds = getHitsounds(filesToDelete, folder);
-                filesToDelete = filterArray(filesToDelete, hitsounds);
-            }
-            //delete files, if mode !testrun
-            for (let i = 0; i < filesToDelete.length; i++) {
-                const stats = fs.statSync(filesToDelete[i]);
-                logger.write("\r\nDeleting " + filesToDelete[i].split(folder + "/")[1]);
-                if (!dryRun)
-                    fs.unlinkSync(filesToDelete[i]);
-                spaceSaved += stats.size;
+            const soundFilename = getPropertyFormDotOsu(dotOsuFiles[i], "General", "AudioFilename");
+            if (soundFilename !== undefined) {
+                const soundFilePath = folder + "/" + soundFilename;
+                //already in it, don't add again
+                if (originalSoundFiles.indexOf(soundFilePath) === -1) {
+                    originalSoundFiles.push(soundFilePath);
+                    const soundFilePathCapitalized = checkCapitalization(soundFilePath, filesToDelete);
+                    uniqueSoundFiles.push(soundFilePathCapitalized);
+                    log("Found soundFile " + soundFilename);
+                }
             }
 
-            deletedFiles += filesToDelete.length;
         }
+
+        if (uniqueBackgrounds.length === 0)
+            log("No background found");
+
+        if (uniqueSoundFiles.length === 0)
+            log("No sound found");
+
+        //removes the content of the second from the first
+        filesToDelete = filterArray(filesToDelete, uniqueBackgrounds);
+        filesToDelete = filterArray(filesToDelete, uniqueSoundFiles);
+        filesToDelete = filterArray(filesToDelete, filterArray(dotOsuFiles, unwishedGamemodeFiles));
+        if (dotOsuFiles.length === unwishedGamemodeFiles.length)
+            log("All difficulties deleted");
+        if (keepHitsounds) {
+            const hitsounds = getHitsounds(filesToDelete, folder);
+            filesToDelete = filterArray(filesToDelete, hitsounds);
+        }
+        //delete files, if mode !testrun
+        for (let i = 0; i < filesToDelete.length; i++) {
+            const stats = fs.statSync(filesToDelete[i]);
+            log("Deleting " + filesToDelete[i].split(folder + "/")[1]);
+            if (!dryRun)
+                fs.unlinkSync(filesToDelete[i]);
+            spaceSaved += stats.size;
+        }
+
+        deletedFiles += filesToDelete.length;
+
     });
     //split in two functions, first contains error prone code, so I can easily wrap it in try catch
     nextStep();
 } catch (error) {
-    logger.write("\r\n\r\n\r\n" + error.stack);
+    log(error.stack, 2);
 
     logger.on("close", function () {
-        process.stdout.write("\r\nPress any key to exit");
+        process.stdout.write("\nPress any key to exit");
         process.stdin.setRawMode(true);
         process.stdin.resume();
         process.stdin.on("data", process.exit.bind(process, 0));
     });
 
-    process.stdout.write("\r\n" + error.stack);
-    process.stdout.write("\r\n\r\nSorry about that, please send me the logfile so I can fix the problem");
-    process.stdout.write("\r\n\r\nWriting logfile...\n");
+    process.stdout.write("\n" + error.stack);
+    process.stdout.write("\n\nSorry about that, please send me the logfile so I can fix the problem");
+    process.stdout.write("\n\nWriting logfile...\n");
     logger.end();
 }
 
 function nextStep() {
-    process.stdout.write("\nDeleting empty folders...\n");
+    process.stdout.write("\nDeleting empty folders, this might take a while...\n");
     if (!dryRun) {
         const orphaned = deleteEmpty.sync(rootFolder, { verbose: false });
         let temp = "";
         for (let i = 0; i < orphaned.length; i++) {
             temp += "\r\nRemoved empty dir " + orphaned[i];
         }
-        logger.write(temp);
+        log(temp);
     }
 
 
-    logger.write("\r\n\r\nTotal: " + totalFiles + ", deleted " + deletedFiles + ", saved: " + humanFileSize(spaceSaved) + ", runtime: " + Math.round(Date.now() / 1000 - startTime) + "s");
-    process.stdout.write("\n\nFinished! From a total of " + totalFiles + " files you deleted " + deletedFiles + ", saving you " + humanFileSize(spaceSaved) + ".\n");
-    process.stdout.write("And it only took you " + (Math.round(Date.now() / 1000 - startTime) < 180 ? Math.round(Date.now() / 1000 - startTime) + " seconds" : (Math.round(Math.round(Date.now() / 1000 - startTime) / 60)) + " minutes"));
+    log("Total: " + totalFiles + ", deleted " + deletedFiles + ", saved: " + humanFileSize(spaceSaved) + ", runtime: " + Math.round(Date.now() / 1000 - startTime) + "s", 1);
+    process.stdout.write("\n\nFinished! From a total of " + totalFiles + " files you deleted " + deletedFiles + ", saving you " + humanFileSize(spaceSaved) + ".");
+    process.stdout.write("\nAnd it only took you " + (Math.round(Date.now() / 1000 - startTime) < 180 ? Math.round(Date.now() / 1000 - startTime) + " seconds" : (Math.round(Math.round(Date.now() / 1000 - startTime) / 60)) + " minutes"));
     process.stdout.write("\nThanks for using this tool.");
     process.stdout.write("\nWriting logfile...");
 
@@ -300,16 +299,14 @@ function nextStep() {
 
 function getHitsounds(files, folder) {
     let hitsounds = [];
-    
     for (let i = 0; i < files.length; i++) {
         const filename = files[i].split(folder + "/")[1];
         const prefix = filename.split("-")[0];
-        const ext = filename.split(".")[filename.split(".").length-1];
+        const ext = filename.split(".")[filename.split(".").length - 1];
 
-        if((prefix === "normal" || prefix === "soft" || prefix === "drum") && ext === "wav"){
+        if ((prefix === "normal" || prefix === "soft" || prefix === "drum") && ext === "wav") {
             hitsounds.push(files[i]);
-            logger.write("\nKeeping hitsound " + filename);
-            
+            log("\nKeeping hitsound " + filename);
         }
     }
     return hitsounds;
@@ -321,7 +318,7 @@ function checkCapitalization(file, filesToDelete) {
     //make both lowercase, if the same take the one with the name from disk
     for (let i = 0; i < filesToDelete.length; i++) {
         if (fileLowerCase === filesToDelete[i].toLowerCase() && file !== filesToDelete[i]) {
-            logger.write("\nCapitalzisation inconsistent: " + filesToDelete[i]);
+            log("Capitalzisation inconsistent: " + filesToDelete[i]);
             return filesToDelete[i];
         }
     }
@@ -361,4 +358,55 @@ function getAllFilesInFolder(dir) {
         else results.push(file);
     })
     return results;
+}
+//you can either find via a key or use regex, regex will only return the full capture
+function getPropertyFormDotOsu(file, property, findThis) {
+    let regex = false;
+    if (typeof findThis === "object")
+        regex = true;
+
+    const lines = fs.readFileSync(file, "utf8").split("\r\n");
+    let result;
+    let inProperty = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (inProperty) {
+            //not found, stop looking, next category reached
+            if (lines[i].charAt[0] === "[") {
+                return undefined;
+            }
+
+            if (regex) {
+                let m;
+                //returns the first match, if existing
+                while ((m = findThis.exec(lines[i])) !== null) {
+                    if (m.index === regex.lastIndex) {
+                        regex.lastIndex++;
+                    }
+                    return m[0];
+                }
+            }
+            else {
+                //splits string into two parts, one everyting before the first :, the second everything after
+                const splitted = lines[i].split(/:(.+)/);
+                if (splitted[0] === findThis) {
+                    return splitted[1].substr(1);
+                }
+            }
+        }
+        //reached the desired category, start looking
+        if (lines[i] === "[" + property + "]")
+            inProperty = true;
+    }
+}
+//defaults to adding a newline
+function log(text, newLines) {
+    if (newLines === undefined) {
+        logger.write("\r\n" + text);
+        return;
+    }
+    let whitespace = "";
+    for (let i = 0; i < newLines + 1; i++) {
+        whitespace += "\r\n";
+    }
+    logger.write(whitespace + text);
 }
