@@ -25,7 +25,8 @@ if (logFileAlreadyExists) {
 }
 var logger = fs.createWriteStream(logFile);
 
-process.stdout.write("Programm written by earlopain. It should probalby work," +
+process.stdout.write("v1.2 21.1.18 06:48PM\n" +
+    "Programm written by earlopain. It should probalby work," +
     "but there is always a chance that something breaks. I recommend to " +
     "make a copy of your songs folder, just to be sure. Kind of defeats the" +
     " purpose of this tool, but at least I warned you. If you have many beatmaps, " +
@@ -55,6 +56,31 @@ while (!validFolder) {
             validFolder = true;
     } catch (error) {
         process.stdout.write("\nThis is either not a valid folder or you don't have permissions");
+    }
+}
+
+//append / if not already there
+if (!rootFolder.endsWith("/"))
+    rootFolder = rootFolder + "/";
+
+try {
+    //check if parent dir contains osu.exe, if not notice the user of it
+    let osuExePath = "";
+    const splitted = rootFolder.split("/");
+    //-2 because the path is of this format: D:/osu!/Songs/, we want D:/osu!/
+    for (let i = 0; i < splitted.length - 2; i++) {
+        osuExePath += splitted[i] + "/";
+    }
+    osuExePath += "osu!.exe";
+    fs.statSync(osuExePath);
+} catch (error) {
+    process.stdout.write("\nosu!.exe was not found one directory lower in your folder. This is ok if your songs folder is not in your osu! folder");
+    if (!dryRun)
+        process.stdout.write("\nAre you ABSOLUTLY sure you got the right folder?\n" +
+            "You may loose important files, they will not apear in your recycle bin");
+
+    if (!readlineSync.keyInYN("\nDid you select the right folder?")) {
+        process.exit(1);
     }
 }
 let gamemodesToDelete = [];
@@ -92,30 +118,6 @@ if (readlineSync.keyInYN("Do you want to also remove gamemode specific maps?")) 
     }
 }
 
-//append / if not already there
-if (!rootFolder.endsWith("/"))
-    rootFolder = rootFolder + "/";
-
-try {
-    //check if parent dir contains osu.exe, if not notice the user of it
-    let osuExePath = "";
-    const splitted = rootFolder.split("/");
-    //-2 because the path is of this format: D:/osu!/Songs/, we want D:/osu!/
-    for (let i = 0; i < splitted.length - 2; i++) {
-        osuExePath += splitted[i] + "/";
-    }
-    osuExePath += "osu!.exe";
-    fs.existsSync(osuExePath);
-} catch (error) {
-    process.stdout.write("\nosu!.exe was not found one directory lower in your folder. This is ok if your songs folder is not in your osu! folder");
-    if (!dryRun)
-        process.stdout.write("\nAre you ABSOLUTLY sure you got the right folder?\n" +
-            "You may loose important files, they will not apear in your recycle bin");
-
-    if (!readlineSync.keyInYN("\nDid you select the right folder?")) {
-        process.exit(1);
-    }
-}
 let keepHitsounds = false;
 if (readlineSync.keyInYN("Do you want to keep hitsounds?")) {
     process.stdout.write("You chose to keep hitsounds\n");
