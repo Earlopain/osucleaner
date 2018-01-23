@@ -3,3 +3,4 @@ cleanup.log*
 package-lock.json
 .vscode
 osu!cleanup.exe
+*.class
