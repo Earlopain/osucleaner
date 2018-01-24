@@ -1,7 +1,12 @@
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,7 +37,11 @@ public class GUI implements ActionListener {
 
 	private JLabel lblOsuFolder;
 
+	private JProgressBar progressBar;
+
 	private Options options = new Options();
+
+	private boolean inProgress = false;
 
 	/**
 	 * Create the application.
@@ -51,8 +60,28 @@ public class GUI implements ActionListener {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(450, 300);
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2);
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		WindowListener exitListener = new WindowAdapter() {
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (inProgress) {
+					int confirm = JOptionPane.showOptionDialog(null,
+							"Are you sure you want to exit?\nThe application is currently working", "Exit Confirmation",
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+					if (confirm == 0) {
+						System.exit(0);
+					}
+				} else
+					System.exit(0);
+
+			}
+		};
+		frame.addWindowListener(exitListener);
 		frame.getContentPane().setLayout(null);
 
 		JLabel lblTestrun = new JLabel("Testrun");
@@ -65,8 +94,9 @@ public class GUI implements ActionListener {
 		chckbxTestrun.setSelected(true);
 		chckbxTestrun.addActionListener(this);
 
-		JProgressBar progressBar = new JProgressBar();
+		progressBar = new JProgressBar();
 		progressBar.setBounds(10, 227, 414, 23);
+		progressBar.setValue(0);
 		frame.getContentPane().add(progressBar);
 
 		btnSelectOsuSong = new JButton("Select osu song folder");
@@ -223,22 +253,39 @@ public class GUI implements ActionListener {
 				JOptionPane.showMessageDialog(frame, "You did not yet select a folder", "Something doesn't look right",
 						JOptionPane.OK_OPTION);
 			} else {
-				if (!options.verifyPath()) {
-					Object[] options = { "Ok", "Cancel" };
-					int n = JOptionPane.showOptionDialog(frame,
+				int status = options.verify();
+				Object[] a = { "Ok", "Cancel" };
+				int n = 0;
+				if (status == 0) {
+					n = JOptionPane.showOptionDialog(frame, "Please doublecheck you settings. Confirm with ok",
+							"Something doesn't look right", JOptionPane.YES_NO_CANCEL_OPTION,
+							JOptionPane.INFORMATION_MESSAGE, null, a, a[1]);
+					//OK
+					if (n == 0) {
+						btnStart.setEnabled(false);
+						Walker.start(options, progressBar);
+					}
+				} else if (status == 1) {
+
+					n = JOptionPane.showOptionDialog(frame,
 							"osu!.exe was not found one directory lower in your folder. This is ok if your songs folder is not in your osu! folder",
 							"Something doesn't look right", JOptionPane.YES_NO_CANCEL_OPTION,
-							JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+							JOptionPane.WARNING_MESSAGE, null, a, a[1]);
 					//OK
 					if (n == 0) {
 						n = JOptionPane.showOptionDialog(frame,
 								"Are you ABSOLUTLY sure you got the right folder?\nYou may loose important files, they will not apear in your recycle bin",
 								"Something doesn't look right", JOptionPane.YES_NO_CANCEL_OPTION,
-								JOptionPane.ERROR_MESSAGE, null, options, options[1]);
+								JOptionPane.ERROR_MESSAGE, null, a, a[1]);
 						if (n == 0) {
-
+							btnStart.setEnabled(false);
+							Walker.start(options, progressBar);
 						}
 					}
+				} else if (status == 2) {
+					Util.notice("If you wanted to delete all gamemodes you could just uninstall osu");
+				} else {
+					Util.notice("You didn't selecet a valid folder");
 				}
 			}
 		}
