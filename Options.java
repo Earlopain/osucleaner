@@ -9,9 +9,21 @@ public class Options {
     boolean keepHitsounds = false;
     boolean removeGamemodes = false;
     //standart, taiko, ctb, mania
+    static String validGamemodesString[] = { "standart", "taiko", "ctb", "mania" };
     boolean gamemodesToRemove[] = { false, false, false, false };
 
-    public boolean verifyPath() {
+    public int verify() {
+        File folder = new File(path);
+        if (!folder.exists())
+            return -1;
+        boolean deleteAll = true;
+        for (int i = 0; i < gamemodesToRemove.length; i++) {
+            if (gamemodesToRemove[i] == false)
+                deleteAll = false;
+        }
+        if (deleteAll)
+            return 2;
+
         //check if parent dir contains osu.exe, if not notice the user of it
         String osuExePath = "";
         String[] splitted = path.split("/");
@@ -21,13 +33,17 @@ public class Options {
         }
         osuExePath += "osu!.exe";
         File f = new File(osuExePath);
-        return f.exists();
+        return f.exists() ? 0 : 1;
     }
 
-    public String toString() {
-        return "Path: " + path + "\nTestrun: " + testrun + "\nKeep hitsounds: " + keepHitsounds + "\nKeep standard:  "
-                + !gamemodesToRemove[0] + "\nKeep taiko:     " + !gamemodesToRemove[1] + "\nKeep ctb:       "
-                + !gamemodesToRemove[2] + "\nKepp mania:     " + !gamemodesToRemove[3];
+    public void log() {
+        Logger.log("Path: " + path);
+        Logger.log("Testrun: " + testrun);
+        Logger.log("Keep hitsounds: " + keepHitsounds);
+        Logger.log("Keep standard: " + !gamemodesToRemove[0]);
+        Logger.log("Keep taiko: " + !gamemodesToRemove[1]);
+        Logger.log("Keep ctb: " + !gamemodesToRemove[2]);
+        Logger.log("Keep mania: " + !gamemodesToRemove[3]);
+        Logger.log("");
     }
-
 }

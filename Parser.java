@@ -1,10 +1,11 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Parser {
-    public static String get(String file, String property, String findThis, boolean regex) {
+    public static String get(File file, String property, String findThis, boolean regex) {
         boolean inProperty = false;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -13,7 +14,7 @@ class Parser {
                 if (inProperty) {
                     if (line.startsWith("[")) {
                         br.close();
-                        return "";
+                        return null;
                     }
 
                     if (regex) {
@@ -36,8 +37,8 @@ class Parser {
 
             }
         } catch (Exception e) {
-
+            Util.throwException(e);
         }
-        return "";
+        return null;
     }
 }
