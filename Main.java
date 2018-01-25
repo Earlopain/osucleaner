@@ -13,6 +13,5 @@ public class Main {
         }
         GUI window = new GUI();
         Util.moveOldConfigs();
-        Logger.start();
     }
 }
