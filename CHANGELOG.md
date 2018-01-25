@@ -1,3 +1,7 @@
+v1.3 25.1.18 11:45P;
+Remade in Java with GUI
+Fixed several issues with the parser not detecting files under certain conditions
+
 v1.2.1 21.1.18 0:41PM
 Fixed failsafe not triggering if osu!.exe is not found in parent folder
 

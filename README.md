@@ -14,8 +14,8 @@ To use this tool either download the js file and execute it with nodejs or use t
 
 If you want to compile it yourself:
 
-1. Install nodejs from [here](https://nodejs.org/en/). Both version 8 and 9 will do
-2. Clone this respository
-3. Run npm install
-4. Run npm install pkg
-5. Run pkg osu!cleanup.js -t node6-win-x86
+1. Download java jdk from [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk9-downloads-3848520.html)
+2. Add java to your path variables
+3. Clone this repository
+4. Run javac *.java
+5. Run jar cfe osu!cleaner.jar Main *.class
