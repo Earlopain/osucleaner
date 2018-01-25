@@ -1,7 +1,9 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 
 public class Util {
     public static ArrayList<File> getHitsounds(ArrayList<File> files, File folder) {
@@ -27,7 +29,6 @@ public class Util {
     public static ArrayList<File> getOsuFiles(ArrayList<File> files) {
         ArrayList<File> results = new ArrayList<File>();
         for (int i = 0; i < files.size(); i++) {
-            String[] splitted = files.get(i).getName().split("\\.");
             if (getExtension(files.get(i)).equals("osu")) {
                 results.add(files.get(i));
             }
@@ -43,6 +44,30 @@ public class Util {
             } else {
                 results.add(fileEntry);
             }
+        }
+        return results;
+    }
+
+    public static ArrayList<File> getEmptyFolders(File dir, JProgressBar bar, long startTime) {
+        ArrayList<File> results = new ArrayList<File>();
+        File[] list = dir.listFiles();
+        int counter = 0;
+        bar.setMaximum(list.length);
+        String previous = "";
+        for (File fileEntry : list) {
+            bar.setValue(counter);
+            String writing = "Deleting empty folder: " + (String.format("%.1f", (double) counter / list.length * 100))
+                    + "% " + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
+            if (!previous.equals(writing)) {
+                previous = writing;
+                bar.setString(writing);
+            }
+            if (fileEntry.isDirectory() && fileEntry.listFiles().length == 0) {
+                results.add(fileEntry);
+            } else if (fileEntry.isDirectory()) {
+                results.addAll(getEmptyFolders(fileEntry));
+            }
+            counter++;
         }
         return results;
     }
@@ -82,5 +107,39 @@ public class Util {
             return f.getName().substring(i + 1);
         } else
             return "";
+    }
+
+    public static File checkCapitalization(File check, ArrayList<File> files) {
+        String lowercase = check.getName().toLowerCase();
+        for (File f : files) {
+            if (lowercase.equalsIgnoreCase(f.getName()) && !check.getName().equals(f.getName())) {
+                Logger.log("Capitalization inconsistent: " + check.getName() + " vs " + f.getName());
+                return f;
+            }
+        }
+        return check;
+    }
+
+    public static void moveOldConfigs() {
+        File[] folderFiles = new File("./").listFiles();
+        String[] logFiles = new String[folderFiles.length];
+        boolean logFileAlreadyExists = false;
+        int counter = 0;
+        for (File file : folderFiles) {
+            if (file.isFile()) {
+                if (file.getName().startsWith(Options.logFile.substring(2))) {
+                    logFiles[counter] = (file.getAbsolutePath());
+                    counter++;
+                }
+                if (file.getName().equals(Options.logFile.substring(2)))
+                    logFileAlreadyExists = true;
+            }
+        }
+        if (logFileAlreadyExists) {
+            //start with the last one, so we don't overwrite files
+            for (int i = counter - 1; i >= 0; i--) {
+                new File(logFiles[i]).renameTo(new File(Options.logFile + (i + 1)));
+            }
+        }
     }
 }
