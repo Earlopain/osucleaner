@@ -21,6 +21,8 @@ public class Util {
     }
 
     public static String humanFileSize(int size) {
+        if (size == 0)
+            return "0.00 B";
         int i = (int) Math.floor(Math.log(size) / Math.log(1024));
         String[] values = { "B", "kB", "MB", "GB", "TB" };
         return String.format("%.2f", size / Math.pow(1024, i)) + " " + values[i];
@@ -36,12 +38,22 @@ public class Util {
         return results;
     }
 
-    public static ArrayList<File> getAllFilesInFolder(File dir) {
+    public static ArrayList<File> getAllFilesInFolderRecursive(File dir) {
         ArrayList<File> results = new ArrayList<File>();
         for (File fileEntry : dir.listFiles()) {
             if (fileEntry.isDirectory()) {
-                results.addAll(getAllFilesInFolder(fileEntry));
+                results.addAll(getAllFilesInFolderRecursive(fileEntry));
             } else {
+                results.add(fileEntry);
+            }
+        }
+        return results;
+    }
+
+    public static ArrayList<File> getAllFilesInFolder(File dir) {
+        ArrayList<File> results = new ArrayList<File>();
+        for (File fileEntry : dir.listFiles()) {
+            if (!fileEntry.isDirectory()) {
                 results.add(fileEntry);
             }
         }
@@ -56,8 +68,7 @@ public class Util {
         String previous = "";
         for (File fileEntry : list) {
             bar.setValue(counter);
-            String writing = "Deleting empty folder: " + (String.format("%.1f", (double) counter / list.length * 100))
-                    + "% " + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
+            String writing = "Deleting empty folders: " + Util.progressbarString(startTime, counter, list.length);
             if (!previous.equals(writing)) {
                 previous = writing;
                 bar.setString(writing);
@@ -141,5 +152,10 @@ public class Util {
                 new File(logFiles[i]).renameTo(new File(Options.logFile + (i + 1)));
             }
         }
+    }
+
+    public static String progressbarString(long startTime, int now, int max){
+        return (String.format("%.1f", (double) now / max * 100))
+        + "% " + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
     }
 }
