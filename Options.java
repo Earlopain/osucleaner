@@ -10,7 +10,7 @@ public class Options {
     boolean keepHitsounds = false;
     boolean removeGamemodes = false;
     //standart, taiko, ctb, mania
-    static String validGamemodesString[] = { "standart", "taiko", "ctb", "mania" };
+    static String validGamemodesString[] = { "Standart", "Taiko", "CTB", "Mania" };
     boolean gamemodesToRemove[] = { false, false, false, false };
 
     public int verify() {
