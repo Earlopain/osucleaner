@@ -3,6 +3,7 @@ import java.io.File;
 public class Options {
 
     final static String logFile = "./cleanup.log";
+    final static boolean caseSensitive = !new File("a").equals(new File("A"));
 
     String path = null;
     boolean testrun = true;
@@ -25,19 +26,16 @@ public class Options {
             return 2;
 
         //check if parent dir contains osu.exe, if not notice the user of it
-        String osuExePath = "";
-        String[] splitted = path.split("/");
-        //-2 because the path is of this format: D:/osu!/Songs/, we want D:/osu!/
-        for (int i = 0; i < splitted.length - 1; i++) {
-            osuExePath += splitted[i] + "/";
-        }
-        osuExePath += "osu!.exe";
-        File f = new File(osuExePath);
-        return f.exists() ? 0 : 1;
+        File parent = folder.getParentFile();
+        if (parent != null) {
+            return new File(parent.getPath() + File.separator + "osu!.exe").exists() ? 0 : 1;
+        } else
+            return 1;
     }
 
     public void log() {
         Logger.log("Path: " + path);
+        Logger.log("Path case-sensitive: " + caseSensitive);
         Logger.log("Testrun: " + testrun);
         Logger.log("Keep hitsounds: " + keepHitsounds);
         Logger.log("Keep standard: " + !gamemodesToRemove[0]);
