@@ -14,8 +14,9 @@ public class Walker {
     public static void start(Options options, JProgressBar progressBar) {
         options.log();
         Logger.log("Starting", 1);
-
         Logger.log("Getting mapsets");
+        progressBar.setStringPainted(true);
+        progressBar.setString("Getting mapsets...");
         String[] filesAndFolders = new File(options.path).list();
         Logger.log("Finished!");
         Logger.log("Sorting out files");
@@ -40,7 +41,6 @@ public class Walker {
         String previousWrite = "";
         Logger.log("Start itterating over the mapsets...", 2);
         progressBar.setMaximum(songs.size());
-        progressBar.setStringPainted(true);
         try {
             //matches something in quotes ending with picture ext, like 0,0,"background.jpg"
             //only picture, because mp4 etc also get startet like this 
@@ -50,43 +50,51 @@ public class Walker {
             ArrayList<File> uniqueSoundFiles;
             ArrayList<File> uniqueBackgrounds;
             ArrayList<File> unwishedGamemodeFiles;
+            ArrayList<File> filesInDirWithoutSubdirs;
 
             for (File folder : songs) {
                 //if trying to read a file fails, it's probably that the path is to long
                 Logger.log("Parsing " + folder, 1);
                 progressBar.setValue(counter);
-                String writing = "Parsing files: " + (String.format("%.1f", (double) counter / songs.size() * 100)) + "% "
-                        + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
+                String writing = "Parsing files: " + Util.progressbarString(startTime, counter, songs.size());
                 if (!writing.equals(previousWrite))
                     progressBar.setString(writing);
                 counter++;
 
-                filesToDelete = Util.getAllFilesInFolder(folder);
+                filesInDirWithoutSubdirs = Util.getAllFilesInFolder(folder);
+                //Maps like https://osu.ppy.sh/s/73 are packaged in a extra folder, the program only looks in the first dir for 
+                //osu files, make sure maps like that survive
+                if (filesInDirWithoutSubdirs.size() == 0 && folder.listFiles().length == 1)
+                    folder = folder.listFiles()[0];
+
+                filesToDelete = Util.getAllFilesInFolderRecursive(folder);
                 totalFiles += filesToDelete.size();
-                dotOsuFiles = Util.getOsuFiles(filesToDelete);
+                dotOsuFiles = Util.getOsuFiles(Util.getAllFilesInFolder(folder));
 
                 uniqueSoundFiles = new ArrayList<File>();
                 uniqueBackgrounds = new ArrayList<File>();
                 unwishedGamemodeFiles = new ArrayList<File>();
-
+                boolean pathsToLong = false;
                 for (File osuFile : dotOsuFiles) {
-                    if (options.removeGamemodes) {
-                        String gm = Parser.get(osuFile, "General", "Mode", false);
-                        //early maps didn't have mode property
-                        if (gm != null) {
-                            int gamemode = Integer.parseInt(gm);
-                            //did the user selecte to delete this gamemode?
-                            if (options.gamemodesToRemove[gamemode]) {
-                                Logger.log(Options.validGamemodesString[gamemode] + ": " + osuFile.getName()
-                                        + ", removing");
-                                unwishedGamemodeFiles.add(osuFile);
-                                //stop the current loop, so you don't add files referenced in the to be deleted .osu
-                                continue;
-                            }
-                        }
-
-                    }
+                    if (pathsToLong)
+                        continue;
                     try {
+                        if (options.removeGamemodes) {
+                            String gm = Parser.get(osuFile, "General", "Mode", false);
+                            //early maps didn't have mode property
+                            if (gm != null) {
+                                int gamemode = Integer.parseInt(gm);
+                                //did the user selecte to delete this gamemode?
+                                if (options.gamemodesToRemove[gamemode]) {
+                                    Logger.log(Options.validGamemodesString[gamemode] + ": " + osuFile.getName()
+                                            + ", removing");
+                                    unwishedGamemodeFiles.add(osuFile);
+                                    //stop the current loop, so you don't add files referenced in the to be deleted .osu
+                                    continue;
+                                }
+                            }
+
+                        }
                         String backgroundImageFilename = Parser.get(osuFile, "Events", regex, true);
                         if (backgroundImageFilename != null) {
                             File backgroundImage = new File(folder.getPath() + File.separator
@@ -111,33 +119,37 @@ public class Walker {
                         }
                     } catch (FileNotFoundException e) {
                         Logger.log("Aborting, paths are too long");
+                        pathsToLong = true;
                         continue;
                     }
 
                 }
-                if (uniqueBackgrounds.size() == 0)
-                    Logger.log("No background found");
-                if (uniqueSoundFiles.size() == 0)
-                    Logger.log("No sound found");
+                if (!pathsToLong) {
+                    if (uniqueBackgrounds.size() == 0)
+                        Logger.log("No background found");
+                    if (uniqueSoundFiles.size() == 0)
+                        Logger.log("No sound found");
 
-                filesToDelete.removeAll(uniqueBackgrounds);
-                filesToDelete.removeAll(uniqueSoundFiles);
-                dotOsuFiles.removeAll(unwishedGamemodeFiles);
-                filesToDelete.removeAll(dotOsuFiles);
-                if (dotOsuFiles.size() == 0)
-                    Logger.log("All difficulties removed");
-                if (options.keepHitsounds) {
-                    ArrayList<File> hitsounds = Util.getHitsounds(filesToDelete, folder);
-                    filesToDelete.removeAll(hitsounds);
+                    filesToDelete.removeAll(uniqueBackgrounds);
+                    filesToDelete.removeAll(uniqueSoundFiles);
+                    dotOsuFiles.removeAll(unwishedGamemodeFiles);
+                    filesToDelete.removeAll(dotOsuFiles);
+                    if (dotOsuFiles.size() == 0)
+                        Logger.log("All difficulties removed");
+                    if (options.keepHitsounds) {
+                        ArrayList<File> hitsounds = Util.getHitsounds(filesToDelete, folder);
+                        filesToDelete.removeAll(hitsounds);
+                    }
+
+                    for (File delete : filesToDelete) {
+                        Logger.log("Deleting " + delete.getName());
+                        if (!options.testrun)
+                            delete.delete();
+                        spaceSaved += delete.length();
+                    }
+                    deletedFiles += filesToDelete.size();
                 }
 
-                for (File delete : filesToDelete) {
-                    Logger.log("Deleting " + delete.getName());
-                    if (!options.testrun)
-                        delete.delete();
-                    spaceSaved += delete.length();
-                }
-                deletedFiles += filesToDelete.size();
             }
             ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path), progressBar, startTime);
             for (File folder : emptyFolders) {
