@@ -1,11 +1,12 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Parser {
-    public static String get(File file, String property, String findThis, boolean regex) {
+    public static String get(File file, String property, String findThis, boolean regex) throws FileNotFoundException{
         boolean inProperty = false;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -36,6 +37,9 @@ class Parser {
                     inProperty = true;
 
             }
+            //probably the filepaths are too long, or file was deleted, but believe it's the other
+        } catch (FileNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             Util.throwException(e);
         }
