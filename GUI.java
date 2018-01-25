@@ -242,9 +242,10 @@ public class GUI implements ActionListener {
 		} else if (ae.getSource() == btnSelectOsuSong) {
 			JFileChooser f = new JFileChooser();
 			f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			f.showSaveDialog(null);
-			if (f.getSelectedFile() != null) {
-				options.path = f.getSelectedFile().getAbsolutePath().replace("\\", "/");
+			f.setDialogTitle("Select your songs folder");
+			f.setApproveButtonText("Select");
+			if (f.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				options.path = f.getSelectedFile().getPath();
 				lblOsuFolder.setText(options.path);
 			}
 
@@ -258,12 +259,11 @@ public class GUI implements ActionListener {
 				int n = 0;
 				if (status == 0) {
 					n = JOptionPane.showOptionDialog(frame, "Please doublecheck you settings. Confirm with ok",
-							"Something doesn't look right", JOptionPane.YES_NO_CANCEL_OPTION,
-							JOptionPane.INFORMATION_MESSAGE, null, a, a[1]);
+							"Ready to go", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, a,
+							a[1]);
 					//OK
 					if (n == 0) {
-						btnStart.setEnabled(false);
-						Walker.start(options, progressBar);
+						start();
 					}
 				} else if (status == 1) {
 
@@ -278,8 +278,7 @@ public class GUI implements ActionListener {
 								"Something doesn't look right", JOptionPane.YES_NO_CANCEL_OPTION,
 								JOptionPane.ERROR_MESSAGE, null, a, a[1]);
 						if (n == 0) {
-							btnStart.setEnabled(false);
-							Walker.start(options, progressBar);
+							start();
 						}
 					}
 				} else if (status == 2) {
@@ -289,5 +288,22 @@ public class GUI implements ActionListener {
 				}
 			}
 		}
+	}
+
+	public void setInactive() {
+		chckbxTestrun.setEnabled(false);
+		btnSelectOsuSong.setEnabled(false);
+		btnStart.setEnabled(false);
+		chckbxKeephitsounds.setEnabled(false);
+		chckbxStandard.setEnabled(false);
+		chckbxCTB.setEnabled(false);
+		chckbxTaiko.setEnabled(false);
+		chckbxMania.setEnabled(false);
+		chckbxRemoveGamemodes.setEnabled(false);
+	}
+
+	private void start() {
+		setInactive();
+		new Thread(() -> Walker.start(options, progressBar)).start();
 	}
 }
