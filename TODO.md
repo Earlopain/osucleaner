@@ -9,3 +9,4 @@ Hook .osz file opener and remove unwanted files before even importing into osu
 About button
 Nice icon
 Better GUI, not shit absolute like right now
+Autoupdater
