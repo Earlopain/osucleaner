@@ -29,7 +29,7 @@ class Parser {
                         final String[] splitted = line.split(":", 2);
                         if (splitted[0].equals(findThis)) {
                             br.close();
-                            return splitted[1].substring(1);
+                            return splitted[1].startsWith(" ") ? splitted[1].substring(1) : splitted[1];
                         }
                     }
                 }
