@@ -40,4 +40,7 @@ public class Logger {
             System.out.println(e);
         }
     }
+    //called to init static block
+    public static void start(){
+    }
 }
