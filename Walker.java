@@ -151,12 +151,15 @@ public class Walker {
                 }
 
             }
-            ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path), progressBar, startTime);
-            for (File folder : emptyFolders) {
-                if (!options.testrun)
-                    folder.delete();
-                Logger.log("Deleting empty folder " + folder.getName());
+            if (!options.testrun) {
+                ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path), progressBar, startTime);
+                for (File folder : emptyFolders) {
+                    if (!options.testrun)
+                        folder.delete();
+                    Logger.log("Deleting empty folder " + folder.getName());
+                }
             }
+
             progressBar.setString("Finished!");
             Logger.log(
                     "Total: " + totalFiles + ", deleted " + deletedFiles + ", saved: " + Util.humanFileSize(spaceSaved)
