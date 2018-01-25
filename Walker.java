@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
@@ -7,9 +8,9 @@ import java.util.regex.Pattern;
 
 import javax.swing.JProgressBar;
 
-import com.sun.deploy.jcp.controller.DeleteFiles;
-
 public class Walker {
+    private static int counter = 0;
+
     public static void start(Options options, JProgressBar progressBar) {
         options.log();
         Logger.log("Starting", 1);
@@ -20,7 +21,7 @@ public class Walker {
         Logger.log("Sorting out files");
         ArrayList<File> songs = new ArrayList<File>();
         for (String element : filesAndFolders) {
-            File f = new File(options.path + "/" + element);
+            File f = new File(options.path + File.separator + element);
             if (f.isDirectory()) {
                 songs.add(f);
             } else {
@@ -29,13 +30,13 @@ public class Walker {
         }
 
         Logger.log("Finished!");
-        int counter = 0;
 
         int totalFiles = 0;
         int deletedFiles = 0;
         int spaceSaved = 0;
         long startTime = new Date().getTime() / 1000;
         //used to see if you need to update the progress indicator, if different from the new one write it
+
         String previousWrite = "";
         Logger.log("Start itterating over the mapsets...", 2);
         progressBar.setMaximum(songs.size());
@@ -51,13 +52,10 @@ public class Walker {
             ArrayList<File> unwishedGamemodeFiles;
 
             for (File folder : songs) {
-                if (counter == 943) {
-                    System.out.println("");
-                }
-                System.out.println(counter);
+                //if trying to read a file fails, it's probably that the path is to long
                 Logger.log("Parsing " + folder, 1);
                 progressBar.setValue(counter);
-                String writing = "" + (Math.round(counter / songs.size() * 10) / 10) + "% "
+                String writing = "Parsing files: " + (String.format("%.1f", (double) counter / songs.size() * 100)) + "% "
                         + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
                 if (!writing.equals(previousWrite))
                     progressBar.setString(writing);
@@ -88,25 +86,34 @@ public class Walker {
                         }
 
                     }
+                    try {
+                        String backgroundImageFilename = Parser.get(osuFile, "Events", regex, true);
+                        if (backgroundImageFilename != null) {
+                            File backgroundImage = new File(folder.getPath() + File.separator
+                                    + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1));
+                            if (Options.caseSensitive)
+                                backgroundImage = Util.checkCapitalization(backgroundImage, filesToDelete);
 
-                    String backgroundImageFilename = Parser.get(osuFile, "Events", regex, true);
-                    if (backgroundImageFilename != null) {
-                        File backgroundImage = new File(folder.getPath() + "/"
-                                + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1));
+                            if (uniqueBackgrounds.indexOf(backgroundImage) == -1) {
+                                uniqueBackgrounds.add(backgroundImage);
+                                Logger.log("Found background " + backgroundImageFilename);
+                            }
+                        }
+                        String soundFilename = Parser.get(osuFile, "General", "AudioFilename", false);
+                        if (soundFilename != null) {
+                            File soundFile = new File(folder.getPath() + File.separator + soundFilename);
+                            if (Options.caseSensitive)
+                                soundFile = Util.checkCapitalization(soundFile, filesToDelete);
+                            if (uniqueSoundFiles.indexOf(soundFile) == -1) {
+                                uniqueSoundFiles.add(soundFile);
+                                Logger.log("Found soundfile " + soundFilename);
+                            }
+                        }
+                    } catch (FileNotFoundException e) {
+                        Logger.log("Aborting, paths are too long");
+                        continue;
+                    }
 
-                        if (uniqueBackgrounds.indexOf(backgroundImage) == -1) {
-                            uniqueBackgrounds.add(backgroundImage);
-                            Logger.log("Found background " + backgroundImageFilename);
-                        }
-                    }
-                    String soundFilename = Parser.get(osuFile, "General", "AudioFilename", false);
-                    if (soundFilename != null) {
-                        File soundFile = new File(folder.getPath() + "/" + soundFilename);
-                        if (uniqueSoundFiles.indexOf(soundFile) == -1) {
-                            uniqueSoundFiles.add(soundFile);
-                            Logger.log("Found soundfile " + soundFilename);
-                        }
-                    }
                 }
                 if (uniqueBackgrounds.size() == 0)
                     Logger.log("No background found");
@@ -132,15 +139,12 @@ public class Walker {
                 }
                 deletedFiles += filesToDelete.size();
             }
-            progressBar.setIndeterminate(true);
-            ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path));
+            ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path), progressBar, startTime);
             for (File folder : emptyFolders) {
                 if (!options.testrun)
                     folder.delete();
                 Logger.log("Deleting empty folder " + folder.getName());
             }
-            progressBar.setIndeterminate(false);
-            progressBar.setValue(progressBar.getMaximum());
             progressBar.setString("Finished!");
             Logger.log(
                     "Total: " + totalFiles + ", deleted " + deletedFiles + ", saved: " + Util.humanFileSize(spaceSaved)
