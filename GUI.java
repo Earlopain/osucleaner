@@ -85,85 +85,85 @@ public class GUI implements ActionListener {
 		frame.getContentPane().setLayout(null);
 
 		JLabel lblTestrun = new JLabel("Testrun");
-		lblTestrun.setBounds(11, 45, 46, 14);
+		lblTestrun.setBounds(11, 45, 70, 15);
 		frame.getContentPane().add(lblTestrun);
 
 		chckbxTestrun = new JCheckBox("");
-		chckbxTestrun.setBounds(124, 45, 21, 23);
+		chckbxTestrun.setBounds(145, 45, 20, 25);
 		frame.getContentPane().add(chckbxTestrun);
 		chckbxTestrun.setSelected(true);
 		chckbxTestrun.addActionListener(this);
 
 		progressBar = new JProgressBar();
-		progressBar.setBounds(10, 227, 414, 23);
+		progressBar.setBounds(10, 225, 415, 25);
 		progressBar.setValue(0);
 		frame.getContentPane().add(progressBar);
 
 		btnSelectOsuSong = new JButton("Select osu song folder");
-		btnSelectOsuSong.setBounds(10, 11, 139, 23);
+		btnSelectOsuSong.setBounds(10, 10, 170, 25);
 		frame.getContentPane().add(btnSelectOsuSong);
 		btnSelectOsuSong.addActionListener(this);
 
 		lblOsuFolder = new JLabel("");
-		lblOsuFolder.setBounds(175, 11, 175, 14);
+		lblOsuFolder.setBounds(175, 10, 175, 15);
 		frame.getContentPane().add(lblOsuFolder);
 
 		btnStart = new JButton("Start");
-		btnStart.setBounds(175, 167, 139, 23);
+		btnStart.setBounds(185, 170, 140, 25);
 		frame.getContentPane().add(btnStart);
 		btnStart.addActionListener(this);
 
 		JLabel lblRemoveGamemodes = new JLabel("Remove gamemodes");
-		lblRemoveGamemodes.setBounds(11, 70, 107, 14);
+		lblRemoveGamemodes.setBounds(11, 70, 150, 15);
 		frame.getContentPane().add(lblRemoveGamemodes);
 
 		chckbxRemoveGamemodes = new JCheckBox("");
-		chckbxRemoveGamemodes.setBounds(124, 66, 97, 23);
+		chckbxRemoveGamemodes.setBounds(145, 65, 100, 25);
 		frame.getContentPane().add(chckbxRemoveGamemodes);
 		chckbxRemoveGamemodes.addActionListener(this);
 
 		lblStandard = new JLabel("Standard");
-		lblStandard.setBounds(11, 95, 46, 14);
+		lblStandard.setBounds(11, 95, 60, 15);
 		frame.getContentPane().add(lblStandard);
 
 		lblTaiko = new JLabel("Taiko");
-		lblTaiko.setBounds(11, 120, 78, 14);
+		lblTaiko.setBounds(10, 120, 8078, 15);
 		frame.getContentPane().add(lblTaiko);
 
 		lblCTB = new JLabel("CTB");
-		lblCTB.setBounds(11, 145, 46, 14);
+		lblCTB.setBounds(10, 145, 45, 15);
 		frame.getContentPane().add(lblCTB);
 
 		lblMania = new JLabel("Mania");
-		lblMania.setBounds(11, 170, 46, 14);
+		lblMania.setBounds(10, 170, 45, 15);
 		frame.getContentPane().add(lblMania);
 
 		chckbxStandard = new JCheckBox("");
-		chckbxStandard.setBounds(124, 91, 97, 23);
+		chckbxStandard.setBounds(145, 90, 100, 25);
 		frame.getContentPane().add(chckbxStandard);
 		chckbxStandard.addActionListener(this);
 
 		chckbxTaiko = new JCheckBox("");
-		chckbxTaiko.setBounds(124, 116, 97, 23);
+		chckbxTaiko.setBounds(145, 115, 100, 25);
 		frame.getContentPane().add(chckbxTaiko);
 		chckbxTaiko.addActionListener(this);
 
 		chckbxCTB = new JCheckBox("");
-		chckbxCTB.setBounds(124, 141, 97, 23);
+		chckbxCTB.setBounds(145, 140, 100,25);
 		frame.getContentPane().add(chckbxCTB);
 		chckbxCTB.addActionListener(this);
 
 		chckbxMania = new JCheckBox("");
-		chckbxMania.setBounds(124, 166, 97, 23);
+		chckbxMania.setBounds(145, 165, 100, 25);
 		frame.getContentPane().add(chckbxMania);
 		chckbxMania.addActionListener(this);
 
 		JLabel lblKeepHitsounds = new JLabel("Keep hitsounds");
-		lblKeepHitsounds.setBounds(175, 45, 83, 14);
+		lblKeepHitsounds.setBounds(200, 45, 100, 15);
 		frame.getContentPane().add(lblKeepHitsounds);
 
 		chckbxKeephitsounds = new JCheckBox("");
-		chckbxKeephitsounds.setBounds(264, 41, 97, 23);
+		chckbxKeephitsounds.setBounds(305, 40, 100, 25);
 		frame.getContentPane().add(chckbxKeephitsounds);
 
 		lblStandard.setVisible(false);
