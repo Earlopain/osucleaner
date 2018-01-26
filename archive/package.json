@@ -1,6 +1,0 @@
-{
-    "dependencies": {
-        "delete-empty": "^1.0.1",
-        "readline-sync": "^1.4.7"
-    }
-}

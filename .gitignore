@@ -1,8 +1,5 @@
-node_modules
 cleanup.log*
-package-lock.json
 .vscode
-osu!cleanup.exe
-*.class
+bin
 *.jar
 !osu!cleaner.jar
