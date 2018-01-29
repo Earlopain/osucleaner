@@ -17,16 +17,16 @@ public class Walker {
         Logger.log("Getting mapsets");
         progressBar.setStringPainted(true);
         progressBar.setString("Getting mapsets...");
-        String[] filesAndFolders = new File(options.path).list();
+        String[] filesAndFolders = options.root.list();
         Logger.log("Finished!");
         Logger.log("Sorting out files");
         ArrayList<File> songs = new ArrayList<File>();
         for (String element : filesAndFolders) {
-            File f = new File(options.path + File.separator + element);
+            File f = new File(options.root.getPath() + File.separator + element);
             if (f.isDirectory()) {
                 songs.add(f);
             } else {
-                Logger.log("Not a mapset: " + options.path + element);
+                Logger.log("Not a mapset: " + element);
             }
         }
 
@@ -147,12 +147,21 @@ public class Walker {
                             delete.delete();
                         spaceSaved += delete.length();
                     }
+
+                    if(options.replaceAllBackgrounds && !options.testrun){
+                        for (File f : uniqueBackgrounds) {
+                            spaceSaved += f.length() - options.image.length();
+                            f.delete();
+                            Files.copy(options.image.toPath(), f.toPath());
+                        }
+                    }
+
                     deletedFiles += filesToDelete.size();
                 }
 
             }
             if (!options.testrun) {
-                ArrayList<File> emptyFolders = Util.getEmptyFolders(new File(options.path), progressBar, startTime);
+                ArrayList<File> emptyFolders = Util.getEmptyFolders(options.root, progressBar, startTime);
                 for (File folder : emptyFolders) {
                     if (!options.testrun)
                         folder.delete();
