@@ -13,6 +13,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -29,6 +30,8 @@ public class GUI implements ActionListener {
 	private JCheckBox chckbxTaiko;
 	private JCheckBox chckbxMania;
 	private JCheckBox chckbxRemoveGamemodes;
+
+	private JCheckBox chckbxReplaceBackgrounds;
 
 	private JLabel lblStandard;
 	private JLabel lblMania;
@@ -89,7 +92,7 @@ public class GUI implements ActionListener {
 		frame.getContentPane().add(lblTestrun);
 
 		chckbxTestrun = new JCheckBox("");
-		chckbxTestrun.setBounds(145, 45, 20, 25);
+		chckbxTestrun.setBounds(145, 45, 20, 20);
 		frame.getContentPane().add(chckbxTestrun);
 		chckbxTestrun.setSelected(true);
 		chckbxTestrun.addActionListener(this);
@@ -105,56 +108,56 @@ public class GUI implements ActionListener {
 		btnSelectOsuSong.addActionListener(this);
 
 		lblOsuFolder = new JLabel("");
-		lblOsuFolder.setBounds(175, 10, 175, 15);
+		lblOsuFolder.setBounds(200, 10, 175, 15);
 		frame.getContentPane().add(lblOsuFolder);
 
 		btnStart = new JButton("Start");
-		btnStart.setBounds(185, 170, 140, 25);
+		btnStart.setBounds(200, 170, 140, 25);
 		frame.getContentPane().add(btnStart);
 		btnStart.addActionListener(this);
 
 		JLabel lblRemoveGamemodes = new JLabel("Remove gamemodes");
-		lblRemoveGamemodes.setBounds(11, 70, 150, 15);
+		lblRemoveGamemodes.setBounds(10, 70, 150, 15);
 		frame.getContentPane().add(lblRemoveGamemodes);
 
 		chckbxRemoveGamemodes = new JCheckBox("");
-		chckbxRemoveGamemodes.setBounds(145, 65, 100, 25);
+		chckbxRemoveGamemodes.setBounds(145, 65, 20, 20);
 		frame.getContentPane().add(chckbxRemoveGamemodes);
 		chckbxRemoveGamemodes.addActionListener(this);
 
 		lblStandard = new JLabel("Standard");
-		lblStandard.setBounds(11, 95, 60, 15);
+		lblStandard.setBounds(10, 95, 60, 15);
 		frame.getContentPane().add(lblStandard);
 
 		lblTaiko = new JLabel("Taiko");
-		lblTaiko.setBounds(10, 120, 8078, 15);
+		lblTaiko.setBounds(10, 120, 60, 15);
 		frame.getContentPane().add(lblTaiko);
 
 		lblCTB = new JLabel("CTB");
-		lblCTB.setBounds(10, 145, 45, 15);
+		lblCTB.setBounds(10, 145, 60, 15);
 		frame.getContentPane().add(lblCTB);
 
 		lblMania = new JLabel("Mania");
-		lblMania.setBounds(10, 170, 45, 15);
+		lblMania.setBounds(10, 170, 60, 15);
 		frame.getContentPane().add(lblMania);
 
 		chckbxStandard = new JCheckBox("");
-		chckbxStandard.setBounds(145, 90, 100, 25);
+		chckbxStandard.setBounds(145, 90, 20, 20);
 		frame.getContentPane().add(chckbxStandard);
 		chckbxStandard.addActionListener(this);
 
 		chckbxTaiko = new JCheckBox("");
-		chckbxTaiko.setBounds(145, 115, 100, 25);
+		chckbxTaiko.setBounds(145, 115, 20, 20);
 		frame.getContentPane().add(chckbxTaiko);
 		chckbxTaiko.addActionListener(this);
 
 		chckbxCTB = new JCheckBox("");
-		chckbxCTB.setBounds(145, 140, 100,25);
+		chckbxCTB.setBounds(145, 140, 20, 20);
 		frame.getContentPane().add(chckbxCTB);
 		chckbxCTB.addActionListener(this);
 
 		chckbxMania = new JCheckBox("");
-		chckbxMania.setBounds(145, 165, 100, 25);
+		chckbxMania.setBounds(145, 165, 20, 20);
 		frame.getContentPane().add(chckbxMania);
 		chckbxMania.addActionListener(this);
 
@@ -163,8 +166,17 @@ public class GUI implements ActionListener {
 		frame.getContentPane().add(lblKeepHitsounds);
 
 		chckbxKeephitsounds = new JCheckBox("");
-		chckbxKeephitsounds.setBounds(305, 40, 100, 25);
+		chckbxKeephitsounds.setBounds(325, 40, 20, 20);
 		frame.getContentPane().add(chckbxKeephitsounds);
+
+		JLabel lblReplaceBackgrounds = new JLabel("Replace backgrounds");
+		lblReplaceBackgrounds.setBounds(200, 70, 120, 15);
+		frame.getContentPane().add(lblReplaceBackgrounds);
+
+		chckbxReplaceBackgrounds = new JCheckBox("");
+		chckbxReplaceBackgrounds.setBounds(325, 65, 20, 20);
+		frame.getContentPane().add(chckbxReplaceBackgrounds);
+		chckbxReplaceBackgrounds.addActionListener(this);
 
 		lblStandard.setVisible(false);
 		lblMania.setVisible(false);
@@ -216,7 +228,23 @@ public class GUI implements ActionListener {
 			} else {
 				options.gamemodesToRemove[3] = true;
 			}
-
+		} else if (ae.getSource() == chckbxReplaceBackgrounds) {
+			if (chckbxReplaceBackgrounds.isSelected()) {
+				JFileChooser f = new JFileChooser();
+				f.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				f.setDialogTitle("Select your image");
+				f.setApproveButtonText("Select");
+				f.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "png"));
+				if (f.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+					options.image = f.getSelectedFile();
+					options.replaceAllBackgrounds = true;
+				} else {
+					chckbxReplaceBackgrounds.setSelected(false);
+					options.replaceAllBackgrounds = false;
+				}
+			} else {
+				options.replaceAllBackgrounds = false;
+			}
 		} else if (ae.getSource() == chckbxRemoveGamemodes) {
 			if (chckbxRemoveGamemodes.isSelected()) {
 				lblStandard.setVisible(true);
@@ -244,13 +272,13 @@ public class GUI implements ActionListener {
 			f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			f.setDialogTitle("Select your songs folder");
 			f.setApproveButtonText("Select");
-			if (f.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-				options.path = f.getSelectedFile().getPath();
-				lblOsuFolder.setText(options.path);
+			if (f.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+				options.root = f.getSelectedFile();
+				lblOsuFolder.setText(options.root.getPath());
 			}
 
 		} else if (ae.getSource() == btnStart) {
-			if (options.path == null) {
+			if (options.root == null) {
 				JOptionPane.showMessageDialog(frame, "You did not yet select a folder", "Something doesn't look right",
 						JOptionPane.OK_OPTION);
 			} else {
