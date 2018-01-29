@@ -1,4 +1,7 @@
-v1.3 25.1.18 11:45P;
+v1.3.1 29.1.18 03:03
+Added option to replace all backgrounds
+
+v1.3 25.1.18 11:45PM;
 Remade in Java with GUI
 Fixed several issues with the parser not detecting files under certain conditions
 
