@@ -5,7 +5,7 @@ public class Options {
     final static String logFile = "./cleanup.log";
     final static boolean caseSensitive = !new File("a").equals(new File("A"));
 
-    String path = null;
+    File root = null;
     boolean testrun = true;
     boolean keepHitsounds = false;
     boolean removeGamemodes = false;
@@ -13,9 +13,11 @@ public class Options {
     static String validGamemodesString[] = { "Standart", "Taiko", "CTB", "Mania" };
     boolean gamemodesToRemove[] = { false, false, false, false };
 
+    boolean replaceAllBackgrounds = false;
+    File image = null;
+
     public int verify() {
-        File folder = new File(path);
-        if (!folder.exists())
+        if (!root.exists())
             return -1;
         boolean deleteAll = true;
         for (int i = 0; i < gamemodesToRemove.length; i++) {
@@ -26,7 +28,7 @@ public class Options {
             return 2;
 
         //check if parent dir contains osu.exe, if not notice the user of it
-        File parent = folder.getParentFile();
+        File parent = root.getParentFile();
         if (parent != null) {
             return new File(parent.getPath() + File.separator + "osu!.exe").exists() ? 0 : 1;
         } else
@@ -34,7 +36,7 @@ public class Options {
     }
 
     public void log() {
-        Logger.log("Path: " + path);
+        Logger.log("Path: " + root.getPath());
         Logger.log("Path case-sensitive: " + caseSensitive);
         Logger.log("Testrun: " + testrun);
         Logger.log("Keep hitsounds: " + keepHitsounds);
@@ -42,6 +44,8 @@ public class Options {
         Logger.log("Keep taiko: " + !gamemodesToRemove[1]);
         Logger.log("Keep ctb: " + !gamemodesToRemove[2]);
         Logger.log("Keep mania: " + !gamemodesToRemove[3]);
+        if (replaceAllBackgrounds)
+            Logger.log("Replace all backgrounds: " + image.getPath());
         Logger.log("");
     }
 }
