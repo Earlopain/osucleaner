@@ -1,6 +1,4 @@
-import java.awt.EventQueue;
-import java.io.File;
-import java.util.List;
+package osucleaner;
 
 import javax.swing.UIManager;
 
@@ -11,7 +9,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        GUI window = new GUI();
+        new GUI();
         Util.moveOldConfigs();
     }
 }

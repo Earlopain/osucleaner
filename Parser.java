@@ -1,3 +1,7 @@
+package osucleaner.parser;
+
+import osucleaner.Util;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -5,7 +9,7 @@ import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Parser {
+public class Parser {
     public static String get(File file, String property, String findThis, boolean regex) throws FileNotFoundException{
         boolean inProperty = false;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {

@@ -1,16 +1,16 @@
+package osucleaner;
+
+import osucleaner.parser.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.swing.JProgressBar;
 
 public class Walker {
     private static int counter = 0;
-
     public static void start(Options options, JProgressBar progressBar) {
         options.log();
         Logger.log("Starting", 1);
