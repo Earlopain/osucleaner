@@ -11,6 +11,7 @@ import javax.swing.JProgressBar;
 
 public class Walker {
     private static int counter = 0;
+
     public static void start(Options options, JProgressBar progressBar) {
         options.log();
         Logger.log("Starting", 1);
@@ -54,7 +55,7 @@ public class Walker {
 
             for (File folder : songs) {
                 //if trying to read a file fails, it's probably that the path is to long
-                Logger.log("Parsing " + folder, 1);
+                Logger.log("Parsing " + folder.getName(), 1);
                 progressBar.setValue(counter);
                 String writing = "Parsing files: " + Util.progressbarString(startTime, counter, songs.size());
                 if (!writing.equals(previousWrite))
@@ -75,12 +76,22 @@ public class Walker {
                 uniqueBackgrounds = new ArrayList<File>();
                 unwishedGamemodeFiles = new ArrayList<File>();
                 boolean pathsToLong = false;
+
                 for (File osuFile : dotOsuFiles) {
                     if (pathsToLong)
                         continue;
                     try {
+                        Parameter paras = new Parameter();
+                        paras.add("General", "Mode");
+                        paras.add("Events", regex, true);
+                        paras.add("General", "AudioFilename");
+                        Results results = Parser.get(osuFile, paras);
+
+                        String gm = results.getFirst(0);
+                        String backgroundImageFilename = results.getFirst(1);
+                        String soundFilename = results.getFirst(2);
+                        
                         if (options.removeGamemodes) {
-                            String gm = Parser.get(osuFile, "General", "Mode", false);
                             //early maps didn't have mode property
                             if (gm != null) {
                                 int gamemode = Integer.parseInt(gm);
@@ -95,7 +106,6 @@ public class Walker {
                             }
 
                         }
-                        String backgroundImageFilename = Parser.get(osuFile, "Events", regex, true);
                         if (backgroundImageFilename != null) {
                             File backgroundImage = new File(folder.getPath() + File.separator
                                     + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1));
@@ -107,7 +117,6 @@ public class Walker {
                                 Logger.log("Found background " + backgroundImageFilename);
                             }
                         }
-                        String soundFilename = Parser.get(osuFile, "General", "AudioFilename", false);
                         if (soundFilename != null) {
                             File soundFile = new File(folder.getPath() + File.separator + soundFilename);
                             if (Options.caseSensitive)
@@ -142,13 +151,14 @@ public class Walker {
                     }
 
                     for (File delete : filesToDelete) {
-                        Logger.log("Deleting " + delete.getName());
+                        String fullPath = delete.getAbsolutePath();
+                        Logger.log("Deleting " + fullPath.substring(fullPath.lastIndexOf(folder.getName())));
                         if (!options.testrun)
                             delete.delete();
                         spaceSaved += delete.length();
                     }
 
-                    if(options.replaceAllBackgrounds && !options.testrun){
+                    if (options.replaceAllBackgrounds && !options.testrun) {
                         for (File f : uniqueBackgrounds) {
                             spaceSaved += f.length() - options.image.length();
                             f.delete();
