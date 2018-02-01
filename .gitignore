@@ -1,5 +1,4 @@
 cleanup.log*
-.vscode
 bin
 *.jar
 !osu!cleaner.jar
