@@ -35,7 +35,7 @@ public class Walker {
 
         int totalFiles = 0;
         int deletedFiles = 0;
-        int spaceSaved = 0;
+        long spaceSaved = 0l;
         long startTime = new Date().getTime() / 1000;
         //used to see if you need to update the progress indicator, if different from the new one write it
 
@@ -107,8 +107,8 @@ public class Walker {
 
                         }
                         if (backgroundImageFilename != null) {
-                            File backgroundImage = new File(folder.getPath() + File.separator
-                                    + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1));
+                            File backgroundImage = new File(folder.getPath() + File.separator//files can be in nested folders, so escape seperators
+                                    + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1).replace("\\", "\\\\"));
                             if (Options.caseSensitive)
                                 backgroundImage = Util.checkCapitalization(backgroundImage, filesToDelete);
 
@@ -118,7 +118,7 @@ public class Walker {
                             }
                         }
                         if (soundFilename != null) {
-                            File soundFile = new File(folder.getPath() + File.separator + soundFilename);
+                            File soundFile = new File(folder.getPath() + File.separator + soundFilename.replace("\\", "\\\\"));
                             if (Options.caseSensitive)
                                 soundFile = Util.checkCapitalization(soundFile, filesToDelete);
                             if (uniqueSoundFiles.indexOf(soundFile) == -1) {
@@ -160,7 +160,7 @@ public class Walker {
 
                     if (options.replaceAllBackgrounds && !options.testrun) {
                         for (File f : uniqueBackgrounds) {
-                            spaceSaved += f.length() - options.image.length();
+                            spaceSaved += f.length() - (options.image == null ? 0 : options.image.length());
                             f.delete();
                             Files.copy(options.image.toPath(), f.toPath());
                         }
