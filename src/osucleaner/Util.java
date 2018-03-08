@@ -22,14 +22,14 @@ public class Util {
         return hitsounds;
     }
 
-    public static String humanFileSize(int size) {
+    public static String humanFileSize(long size) {
         if (size == 0)
-            return "0.00 B";
+            return "nothing";
         boolean negative = size < 0 ? true : false;
         if (size < 0)
             size *= -1;
         int i = (int) Math.floor(Math.log(size) / Math.log(1024));
-        String[] values = { "B", "kB", "MB", "GB", "TB" };
+        String[] values = { "B", "kB", "MB", "GB", "TB", "PB" };
         String result =  String.format("%.2f", size / Math.pow(1024, i)) + " " + values[i];
         return negative ? "-" + result : result;
     }
@@ -163,5 +163,10 @@ public class Util {
     public static String progressbarString(long startTime, int now, int max) {
         return (String.format("%.1f", (double) now / max * 100)) + "% "
                 + (Math.round(new Date().getTime() / 1000 - startTime)) + "s";
+    }
+
+    public static String getUserDataFolder(){
+        if(true){}
+        return "";
     }
 }
