@@ -153,9 +153,9 @@ public class Walker {
                     for (File delete : filesToDelete) {
                         String fullPath = delete.getAbsolutePath();
                         Logger.log("Deleting " + fullPath.substring(fullPath.lastIndexOf(folder.getName())));
+                        spaceSaved += delete.length();
                         if (!options.testrun)
                             delete.delete();
-                        spaceSaved += delete.length();
                     }
 
                     if (options.replaceAllBackgrounds && !options.testrun) {
