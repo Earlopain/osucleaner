@@ -34,7 +34,7 @@ public class Parser {
                             }
 
                             if (list.get(i).regex) {
-                                Pattern p = Pattern.compile(list.get(i).findThis);
+                                Pattern p = Pattern.compile(list.get(i).findThis, Pattern.CASE_INSENSITIVE);
                                 Matcher m = p.matcher(line);
                                 while (m.find()) {
                                     results.add(i, m.group(0));
