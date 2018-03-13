@@ -90,7 +90,7 @@ public class Walker {
                         String gm = results.getFirst(0);
                         String backgroundImageFilename = results.getFirst(1);
                         String soundFilename = results.getFirst(2);
-                        
+
                         if (options.removeGamemodes) {
                             //early maps didn't have mode property
                             if (gm != null) {
@@ -108,7 +108,8 @@ public class Walker {
                         }
                         if (backgroundImageFilename != null) {
                             File backgroundImage = new File(folder.getPath() + File.separator//files can be in nested folders, so escape seperators
-                                    + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1).replace("\\", "\\\\"));
+                                    + backgroundImageFilename.substring(1, backgroundImageFilename.length() - 1)
+                                            .replace("\\", "\\\\"));
                             if (Options.caseSensitive)
                                 backgroundImage = Util.checkCapitalization(backgroundImage, filesToDelete);
 
@@ -118,7 +119,8 @@ public class Walker {
                             }
                         }
                         if (soundFilename != null) {
-                            File soundFile = new File(folder.getPath() + File.separator + soundFilename.replace("\\", "\\\\"));
+                            File soundFile = new File(
+                                    folder.getPath() + File.separator + soundFilename.replace("\\", "\\\\"));
                             if (Options.caseSensitive)
                                 soundFile = Util.checkCapitalization(soundFile, filesToDelete);
                             if (uniqueSoundFiles.indexOf(soundFile) == -1) {
@@ -151,8 +153,8 @@ public class Walker {
                     }
 
                     for (File delete : filesToDelete) {
-                        String fullPath = delete.getAbsolutePath();
-                        Logger.log("Deleting " + fullPath.substring(fullPath.lastIndexOf(folder.getName())));
+                        String fullPath = delete.getPath();
+                        Logger.log("Deleting " + fullPath.replace(folder.getPath() + File.separatorChar, ""));
                         spaceSaved += delete.length();
                         if (!options.testrun)
                             delete.delete();
